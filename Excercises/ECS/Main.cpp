@@ -39,22 +39,31 @@ float RandomFloatgenerator()
 	S ^= (S << 3);
 	return float(S);
 }
+uint8_t RandomU8generator() 
+{
+	static uint8_t S = 12; 
+	S ^= (S << 7);
+	S ^= (S >> 5);
+	S ^= (S << 3);
+	return S;
+}
 
 class Entity
 {
 public:
-
+	//they are in order of size for optimization
 	static constexpr uint16_t NumberOfEntities = 500;
 	Vec3 positionComponent[NumberOfEntities];
 	Vec3 velocityComponent[NumberOfEntities];
-	//stats
+
+	float jumpForce[NumberOfEntities];
+	float speed[NumberOfEntities];
+
 	int8_t health[NumberOfEntities];
 	int8_t damage[NumberOfEntities];
 	int8_t defense[NumberOfEntities];
 	int8_t agility[NumberOfEntities];
 
-
-	//other things
 	Item item[NumberOfEntities];
 
 	Entity()
@@ -63,14 +72,18 @@ public:
 		{
 			//for now they are random just to test  but in the future no
 			//positions
-			positionComponent[i].X = RandomU8generator();
-			positionComponent[i].Y = RandomU8generator();
-			positionComponent[i].Z = RandomU8generator();
+			positionComponent[i].X = RandomFloatgenerator();
+			positionComponent[i].Y = RandomFloatgenerator();
+			positionComponent[i].Z = RandomFloatgenerator();
 			//velocities
-			velocityComponent[i].X = RandomU8generator();
-			velocityComponent[i].Y = RandomU8generator();
-			velocityComponent[i].Z = RandomU8generator();
+			velocityComponent[i].X = RandomFloatgenerator();
+			velocityComponent[i].Y = RandomFloatgenerator();
+			velocityComponent[i].Z = RandomFloatgenerator();
+
 			//stats
+			jumpForce[i] = 1.2;
+			speed[i] = 1.8;
+
 			health[i] = ((RandomU8generator() % 10) + 10);
 			damage[i] = ((RandomU8generator() % 10) + 10);
 			defense[i] = (RandomU8generator() % 2);
@@ -95,13 +108,6 @@ public:
 		}
 	}
 
-	void Vec3ZeroSystem(const uint16_t id)
-	{
-		positionComponent[id].X = 0;
-		positionComponent[id].Y = 0;
-		positionComponent[id].Z = 0;
-	}
-
 	void AttackSystem(const uint16_t id, const uint16_t target_id)
 	{
 		if (is_alive(id) == false)
@@ -112,7 +118,14 @@ public:
 
 	}
 
-	void MoveSystem(const uint16_t id)
+	void VelocityZeroSystem(const uint16_t id)
+	{
+		velocityComponent[id].X = 0;
+		velocityComponent[id].Y = 0;
+		velocityComponent[id].Z = 0;
+	}
+
+	void VelocityUpdateSystem(const uint16_t id)
 	{
 		if (is_alive(id) == false)
 		{
@@ -123,19 +136,43 @@ public:
 		positionComponent[id].Z += velocityComponent[id].Z;
 	}
 
-	void MoveTWRSystem(const uint16_t id, Vec3 TargetPosition)
-	{
-		float DifferenceX = TargetPosition.X - positionComponent[id].X;
-		float DifferenceY = TargetPosition.Y - positionComponent[id].Y;
-		float DifferenceZ = TargetPosition.Z - positionComponent[id].Z;
-
-
+	void JumpSystem(const uint16_t id)
+	{	
+		velocityComponent[id].Y += jumpForce[id];	
 	}
 
-	
-	void UpdateSystem()
+	void MoveTWRSystem(const uint16_t id ,const Vec3 newPosition)
 	{
-		
+		//we move on axis X and Z
+
+		float dirX = newPosition.X - velocityComponent[id].X;
+		float dirZ = newPosition.Z - velocityComponent[id].Z;
+
+		float distance = std::sqrt(dirX * dirX + dirZ * dirZ);
+		if (distance > 0.05f)
+		{
+			velocityComponent[id].X = (dirX / distance) * speed[id];
+			velocityComponent[id].Z = (dirZ / distance) * speed[id];
+		}
+		else
+		{
+			velocityComponent[id].X = 0.0f;
+			velocityComponent[id].Z = 0.0f;
+		}
+	}
+	
+	void ThinkingSystem(const uint16_t id)
+	{
+		//take decision like jump attack ecc ai ecc
+	}
+
+	void UpdateSystem(const uint16_t id)
+	{
+		ThinkingSystem(id);
+
+
+
+		VelocityZeroSystem(id);
 	}
 
 	void UpdateAll()
@@ -146,20 +183,11 @@ public:
 };
 
 
-void vec3ZeroSystem(Vec3* pos, uint16_t id)
-{
-	pos[id].X = 0;
-	pos[id].Y = 0;
-	pos[id].Z = 0;
-}
+
 
 
 int main()
 {
-	Entity zombies;
-
-	
-	zombies.Attack(2,3);
 
 
 }
