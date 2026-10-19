@@ -1,5 +1,7 @@
 #include <iostream>
 int main()
 {
-	std::cout << "hello world" << std::endl;
+	int cubicArray[10][10][10];
+
+	cubicArray[9][9][9] = 0;
 }
