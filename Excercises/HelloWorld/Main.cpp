@@ -1,11 +1,14 @@
 #include <iostream>
+
 int main()
 {
-	int cubicArray[10][10][10];
+	float variable = 8.92f;
+	std::cout << sizeof(variable) << std::endl;
 
-	cubicArray[9][9][9] = 731;
 
-	cubicArray[0][0][0] = 1;
-	//i will start the cherno again
+}
 
+void Multiply(int a, int b)
+{
+	return a * b;
 }
